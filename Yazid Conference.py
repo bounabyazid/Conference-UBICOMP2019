@@ -16,25 +16,27 @@ from scipy.stats import entropy, chisquare
 from scipy.stats.stats import pearsonr   
 
 def Preprocess_Data():
+    #https://www.datacamp.com/community/tutorials/joining-dataframes-pandas
     df = pd.read_csv('tweets_original.tsv',delimiter='\t',encoding='utf-8')
     df2 = pd.read_csv('tweets_twins.tsv',delimiter='\t',encoding='utf-8')
     Sentiment = {'Compound1': df['Compound'].tolist(), 'Negative1': df['Negative'].tolist(),'Neutral1': df['Neutral'].tolist(),'Positive1': df['Positive'].tolist(), 
              'Compound2': df2['Compound'].astype(float).tolist(), 'Negative2': df2['Negative'].tolist(),'Neutral2': df2['Neutral'].tolist(),'Positive2': df2['Positive'].tolist(),
              'Locations': df['Locations'].tolist(), 'Timestamp': df['Timestamp'].tolist(), 'Uuid': df['Uuid'].tolist()}
 
-    df = pd.DataFrame(Sentiment)
-    df = df.replace([np.inf, -np.inf], np.nan)
-    df = df.replace([np.inf, -np.inf], np.nan)
+    df3 = pd.DataFrame(Sentiment)
+    df3 = df3.replace([np.inf, -np.inf], np.nan)
 
-    df = df.replace('', np.nan)
-    df = df.replace(' ', np.nan)
-    df = df.dropna()#removing NaN
+    df3 = df3.replace('', np.nan)
+    df3 = df3.dropna()#removing NaN
    
     #df = df.dropna(subset=['col1', 'col2'], how='all')
-    df.to_csv('Original_Twin.tsv',sep='\t')
-    return df
+    #df3.to_csv('Original_Twin.tsv',sep='\t')
+    
+    #df4 = pd.merge(df, df2, on = 'Uuid')
+    df4 = pd.merge(df, df2, on='Uuid', how='outer')
+    return df,df2,df3,df4
 
-def Normalisation(x):
+def Normalisation(x):#just to remove negative values
     x = x.reshape((len(x), 1))
     scaler = MinMaxScaler(feature_range=(0, 1))
     scaler = scaler.fit(x)
@@ -61,8 +63,8 @@ def MAE(df,C):
     return  mean_absolute_error(x,y)
     
 def Loss_Measures():
-    df = Preprocess_Data()
-    
+    df,df2,df3 = Preprocess_Data()
+    df = df3
     #CrossEntropy
     print('________________Cross Entropy________________')
     
@@ -95,5 +97,6 @@ def Loss_Measures():
     print ('Positive',MAE(df,'Positive'))
     print ('Neutral ',MAE(df,'Neutral'))
 
-#df3 = Preprocess_Data()
-Loss_Measures()
+    return df
+df,df2,df3,df4 = Preprocess_Data()
+#df = Loss_Measures()
